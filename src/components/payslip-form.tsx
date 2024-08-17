@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import React, { useState } from "react";
 import {
   Card,
@@ -10,7 +10,11 @@ import { Button } from "@/components/ui/button";
 import PayslipSummary from "./payslip-summary";
 import { Separator } from "./ui/separator";
 
-const InputWithLabel: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }> = ({ label, value, onChange }) => (
+const InputWithLabel: React.FC<{
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}> = ({ label, value, onChange }) => (
   <div className="grid gap-1">
     <label className="text-sm font-medium">{label}</label>
     <input
@@ -23,6 +27,9 @@ const InputWithLabel: React.FC<{ label: string; value: string; onChange: (e: Rea
 );
 
 export const PayslipForm = () => {
+  const [workingDaysPaidFor, setWorkingDaysPaidFor] = useState("20");
+  const [noOfLops, setNoOfLops] = useState("2");
+
   const [earnings, setEarnings] = useState<{ name: string; amount: string }[]>([
     { name: "Basic Salary", amount: "₹40,000" },
     { name: "Allowances", amount: "₹5,000" },
@@ -59,6 +66,8 @@ export const PayslipForm = () => {
     designation: "Software Engineer",
     department: "Engineering",
     payPeriod: "June 1, 2023 - June 30, 2023",
+    workingDaysPaidFor: workingDaysPaidFor,
+    noOfLops: noOfLops,
     earnings: earnings,
     deductions: deductions,
     netPay: calculateNetPay(),
@@ -99,6 +108,8 @@ export const PayslipForm = () => {
   const generatePayslip = () => {
     setFormData({
       ...formData,
+      workingDaysPaidFor,
+      noOfLops,
       earnings: earnings,
       deductions: deductions,
       netPay: calculateNetPay(),
@@ -164,6 +175,16 @@ export const PayslipForm = () => {
             onChange={(e) =>
               setFormData({ ...formData, payPeriod: e.target.value })
             }
+          />
+          <InputWithLabel
+            label="Working Days Paid For"
+            value={workingDaysPaidFor}
+            onChange={(e) => setWorkingDaysPaidFor(e.target.value)}
+          />
+          <InputWithLabel
+            label="Number of LOPs"
+            value={noOfLops}
+            onChange={(e) => setNoOfLops(e.target.value)}
           />
         </div>
         <Separator />

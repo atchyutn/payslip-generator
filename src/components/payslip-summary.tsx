@@ -19,6 +19,8 @@ interface FormData {
   designation: string;
   department: string;
   payPeriod: string;
+  workingDaysPaidFor: string;
+  noOfLops: string;
   earnings: { name: string; amount: string }[];
   deductions: { name: string; amount: string }[];
   netPay: string;
@@ -36,6 +38,8 @@ const PayslipSummary: React.FC<PayslipSummaryProps> = ({ formData }) => {
     designation,
     department,
     payPeriod,
+    workingDaysPaidFor,
+    noOfLops,
     earnings,
     deductions,
     netPay,
@@ -54,7 +58,6 @@ const downloadPDF = () => {
   doc.setFontSize(16);
   doc.text("Acme Inc.", 40, 28);
   doc.setFontSize(12);
-  // doc.text("Payslip Summary", 40, 34);
   doc.text(`Pay Period: ${payPeriod}`, 130, 28);
 
   // Employee details
@@ -63,6 +66,8 @@ const downloadPDF = () => {
   doc.text(`Employee ID: ${employeeId}`, 120, 50);
   doc.text(`Designation: ${designation}`, 20, 60);
   doc.text(`Department: ${department}`, 120, 60);
+  doc.text(`Working Days Paid For: ${workingDaysPaidFor}`, 20, 70);
+  doc.text(`No. of LOPs: ${noOfLops}`, 120, 70);
 
   // Earnings Table
    (doc as jsPDF & { autoTable: autoTable }).autoTable({
