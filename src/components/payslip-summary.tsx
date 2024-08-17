@@ -59,7 +59,7 @@ const downloadPDF = () => {
   doc.setFontSize(12);
 
   // Header with Company Logo and Payslip Title
-  // doc.addImage("/placeholder.svg", "PNG", 20, 20, 15, 15);
+  doc.addImage("/placeholder.svg", "PNG", 20, 20, 15, 15);
   doc.setFontSize(16);
   doc.text(`${companyName} - Payslip`, 40, 28);
   doc.setFontSize(12);

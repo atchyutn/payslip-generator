@@ -27,7 +27,7 @@ const InputWithLabel: React.FC<{
 );
 
 export const PayslipForm = () => {
-  const [companyLogo, setCompanyLogo] = useState("/placeholder.svg");
+  const [companyLogo, setCompanyLogo] = useState("./placeholder.svg");
   const [companyName, setCompanyName] = useState("Company Name");
   const [workingDaysPaidFor, setWorkingDaysPaidFor] = useState("20");
   const [noOfLops, setNoOfLops] = useState("2");
