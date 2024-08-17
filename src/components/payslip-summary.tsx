@@ -42,42 +42,73 @@ const PayslipSummary: React.FC<PayslipSummaryProps> = ({ formData }) => {
     paymentMethod,
   } = formData;
 
- const downloadPDF = () => {
-   const doc = new jsPDF();
+const downloadPDF = () => {
+  const doc = new jsPDF();
 
-   // Add Payslip header
-   doc.text("Payslip Summary", 20, 20);
-   doc.text(`Employee Name: ${employeeName}`, 20, 30);
-   doc.text(`Employee ID: ${employeeId}`, 20, 40);
-   doc.text(`Designation: ${designation}`, 20, 50);
-   doc.text(`Department: ${department}`, 20, 60);
-   doc.text(`Pay Period: ${payPeriod}`, 20, 70);
+  // Set font and size
+  doc.setFont("helvetica");
+  doc.setFontSize(12);
 
-   // Earnings Table
+  // Header with Company Logo and Payslip Title
+  // doc.addImage("/placeholder.svg", "PNG", 20, 20, 15, 15);
+  doc.setFontSize(16);
+  doc.text("Acme Inc.", 40, 28);
+  doc.setFontSize(12);
+  // doc.text("Payslip Summary", 40, 34);
+  doc.text(`Pay Period: ${payPeriod}`, 130, 28);
+
+  // Employee details
+  doc.setFontSize(12);
+  doc.text(`Employee Name: ${employeeName}`, 20, 50);
+  doc.text(`Employee ID: ${employeeId}`, 120, 50);
+  doc.text(`Designation: ${designation}`, 20, 60);
+  doc.text(`Department: ${department}`, 120, 60);
+
+  // Earnings Table
    (doc as jsPDF & { autoTable: autoTable }).autoTable({
-     startY: 80,
-     head: [["Earnings", "Amount"]],
-     body: earnings.map((field) => [field.name, field.amount]),
-   });
+    startY: 70,
+    head: [["Earnings", "Amount"]],
+    body: earnings.map((field) => [
+      field.name,
+      field.amount.includes("₹") ? field.amount : `₹${field.amount}`, // Add Rupee symbol if missing
+    ]),
+    theme: "grid",
+    headStyles: { fillColor: [220, 220, 220] },
+  });
 
-   // Deductions Table
+  // Deductions Table
    (doc as jsPDF & { autoTable: autoTable }).autoTable({
-     startY: (doc as any).lastAutoTable.finalY + 10, // Start after the previous table
-     head: [["Deductions", "Amount"]],
-     body: deductions.map((field) => [field.name, field.amount]),
-   });
+    startY:  (doc as any).lastAutoTable.finalY + 10, // Start after the previous table
+    head: [["Deductions", "Amount"]],
+    body: deductions.map((field) => [
+      field.name,
+      field.amount.includes("₹") ? field.amount : `₹${field.amount}`, // Add Rupee symbol if missing
+    ]),
+    theme: "grid",
+    headStyles: { fillColor: [220, 220, 220] },
+  });
 
-   // Net Pay and Payment Method
-   doc.text(`Net Pay: ${netPay}`, 20, (doc as any).lastAutoTable.finalY + 30);
-   doc.text(
-     `Payment Method: ${paymentMethod}`,
-     20,
-     (doc as any).lastAutoTable.finalY + 40
-   );
+  // Net Pay and Payment Method
+  doc.setFontSize(12);
+  doc.text(`Net Pay: ₹${netPay}`, 20,  (doc as any).lastAutoTable.finalY + 20);
+  doc.text(
+    `Payment Method: ${paymentMethod}`,
+    20,
+     (doc as any).lastAutoTable.finalY + 30
+  );
 
-   // Download the PDF
-   doc.save(`Payslip_${employeeName}_${payPeriod}.pdf`);
- };
+  // Footer note
+  doc.setFontSize(10);
+  doc.text(
+    "This is a computer-generated payslip and does not require a signature.",
+    20,
+     (doc as any).lastAutoTable.finalY + 50
+  );
+
+  // Download the PDF
+  doc.save(`Payslip_${employeeName}_${payPeriod}.pdf`);
+};
+
 
 
   const sendEmail = () => {
@@ -99,7 +130,6 @@ const PayslipSummary: React.FC<PayslipSummaryProps> = ({ formData }) => {
           />
           <div className="grid gap-1">
             <div className="text-lg font-semibold">Acme Inc.</div>
-            <div className="text-sm text-muted-foreground">Payslip Summary</div>
           </div>
         </div>
         <div className="text-sm text-muted-foreground">
