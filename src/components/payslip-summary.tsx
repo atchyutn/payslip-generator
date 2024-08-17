@@ -7,6 +7,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import jsPDF from "jspdf";
+import { autoTable, RowInput } from "jspdf-autotable";
+require("jspdf-autotable");
+
 
 // Define TypeScript interface for form data
 interface FormData {
@@ -38,10 +42,43 @@ const PayslipSummary: React.FC<PayslipSummaryProps> = ({ formData }) => {
     paymentMethod,
   } = formData;
 
-  const downloadPDF = () => {
-    // Implement PDF download logic here
-    alert("Download PDF functionality is not yet implemented.");
-  };
+ const downloadPDF = () => {
+   const doc = new jsPDF();
+
+   // Add Payslip header
+   doc.text("Payslip Summary", 20, 20);
+   doc.text(`Employee Name: ${employeeName}`, 20, 30);
+   doc.text(`Employee ID: ${employeeId}`, 20, 40);
+   doc.text(`Designation: ${designation}`, 20, 50);
+   doc.text(`Department: ${department}`, 20, 60);
+   doc.text(`Pay Period: ${payPeriod}`, 20, 70);
+
+   // Earnings Table
+   (doc as jsPDF & { autoTable: autoTable }).autoTable({
+     startY: 80,
+     head: [["Earnings", "Amount"]],
+     body: earnings.map((field) => [field.name, field.amount]),
+   });
+
+   // Deductions Table
+   (doc as jsPDF & { autoTable: autoTable }).autoTable({
+     startY: (doc as any).lastAutoTable.finalY + 10, // Start after the previous table
+     head: [["Deductions", "Amount"]],
+     body: deductions.map((field) => [field.name, field.amount]),
+   });
+
+   // Net Pay and Payment Method
+   doc.text(`Net Pay: ${netPay}`, 20, (doc as any).lastAutoTable.finalY + 30);
+   doc.text(
+     `Payment Method: ${paymentMethod}`,
+     20,
+     (doc as any).lastAutoTable.finalY + 40
+   );
+
+   // Download the PDF
+   doc.save(`Payslip_${employeeName}_${payPeriod}.pdf`);
+ };
+
 
   const sendEmail = () => {
     // Implement send email logic here
