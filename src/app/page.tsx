@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { PayslipForm } from "@/components/payslip-form";
+import PayslipSummary from "@/components/payslip-summary";
 
 export default function Home() {
   return (

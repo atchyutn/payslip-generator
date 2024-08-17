@@ -1,31 +1,73 @@
-'use client'
-import { useState } from "react";
+'use client';
+import React, { useState } from "react";
 import {
   Card,
   CardHeader,
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import PayslipSummary from "./payslip-summary";
+import { Separator } from "./ui/separator";
+
+const InputWithLabel: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }> = ({ label, value, onChange }) => (
+  <div className="grid gap-1">
+    <label className="text-sm font-medium">{label}</label>
+    <input
+      type="text"
+      className="border border-gray-300 p-2 rounded"
+      value={value}
+      onChange={onChange}
+    />
+  </div>
+);
 
 export const PayslipForm = () => {
-  // State to manage earnings and deductions
-  const [earnings, setEarnings] = useState([
+  const [earnings, setEarnings] = useState<{ name: string; amount: string }[]>([
     { name: "Basic Salary", amount: "₹40,000" },
     { name: "Allowances", amount: "₹5,000" },
     { name: "Bonus", amount: "₹5,000" },
   ]);
 
-  const [deductions, setDeductions] = useState([
+  const [deductions, setDeductions] = useState<
+    { name: string; amount: string }[]
+  >([
     { name: "Provident Fund", amount: "₹5,000" },
     { name: "Income Tax", amount: "₹3,000" },
     { name: "Professional Tax", amount: "₹200" },
   ]);
 
-  // Handler to add a new field to earnings or deductions
-  const handleAddField = (type: any) => {
+  // Function to calculate net pay
+  const calculateNetPay = () => {
+    const totalEarnings = earnings.reduce(
+      (acc, item) =>
+        acc + parseFloat(item.amount.replace("₹", "").replace(",", "")),
+      0
+    );
+    const totalDeductions = deductions.reduce(
+      (acc, item) =>
+        acc + parseFloat(item.amount.replace("₹", "").replace(",", "")),
+      0
+    );
+    const netPay = totalEarnings - totalDeductions;
+    return `₹${netPay.toLocaleString()}`;
+  };
+
+  const [formData, setFormData] = useState({
+    employeeName: "Raj Kumar",
+    employeeId: "EMP-0123",
+    designation: "Software Engineer",
+    department: "Engineering",
+    payPeriod: "June 1, 2023 - June 30, 2023",
+    earnings: earnings,
+    deductions: deductions,
+    netPay: calculateNetPay(),
+    paymentMethod: "Bank Transfer",
+  });
+
+  const [showSummary, setShowSummary] = useState(false);
+
+  const handleAddField = (type: "earnings" | "deductions") => {
     if (type === "earnings") {
       setEarnings([...earnings, { name: "", amount: "" }]);
     } else if (type === "deductions") {
@@ -33,8 +75,12 @@ export const PayslipForm = () => {
     }
   };
 
-  // Handler to update field values
-  const handleFieldChange = (type: string, index: number, key: string, value: string) => {
+  const handleFieldChange = (
+    type: "earnings" | "deductions",
+    index: number,
+    key: "name" | "amount",
+    value: string
+  ) => {
     if (type === "earnings") {
       setEarnings(
         earnings.map((field, i) =>
@@ -50,6 +96,20 @@ export const PayslipForm = () => {
     }
   };
 
+  const generatePayslip = () => {
+    setFormData({
+      ...formData,
+      earnings: earnings,
+      deductions: deductions,
+      netPay: calculateNetPay(),
+    });
+    setShowSummary(true);
+  };
+
+  if (showSummary) {
+    return <PayslipSummary formData={formData} />;
+  }
+
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader className="flex items-center justify-between border-b pb-4">
@@ -64,155 +124,117 @@ export const PayslipForm = () => {
           />
           <div className="grid gap-1">
             <div className="text-lg font-semibold">Acme Inc.</div>
-            <div className="text-sm text-muted-foreground">
-              Payslip Generator
-            </div>
+            <div className="text-sm text-muted-foreground">Payslip Form</div>
           </div>
-        </div>
-        <div className="text-sm text-muted-foreground">
-          Pay Period:{" "}
-          <Input
-            type="text"
-            className="w-40"
-            defaultValue="June 1, 2023 - June 30, 2023"
-          />
         </div>
       </CardHeader>
       <CardContent className="grid gap-6 py-6">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-1">
-            <div className="text-sm font-medium">Employee Name</div>
-            <Input type="text" className="w-full" defaultValue="Raj Kumar" />
-          </div>
-          <div className="grid gap-1">
-            <div className="text-sm font-medium">Employee ID</div>
-            <Input type="text" className="w-full" defaultValue="EMP-0123" />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-1">
-            <div className="text-sm font-medium">Designation</div>
-            <Input
-              type="text"
-              className="w-full"
-              defaultValue="Software Engineer"
-            />
-          </div>
-          <div className="grid gap-1">
-            <div className="text-sm font-medium">Department</div>
-            <Input type="text" className="w-full" defaultValue="Engineering" />
-          </div>
+        <div className="grid gap-4">
+          <InputWithLabel
+            label="Employee Name"
+            value={formData.employeeName}
+            onChange={(e) =>
+              setFormData({ ...formData, employeeName: e.target.value })
+            }
+          />
+          <InputWithLabel
+            label="Employee ID"
+            value={formData.employeeId}
+            onChange={(e) =>
+              setFormData({ ...formData, employeeId: e.target.value })
+            }
+          />
+          <InputWithLabel
+            label="Designation"
+            value={formData.designation}
+            onChange={(e) =>
+              setFormData({ ...formData, designation: e.target.value })
+            }
+          />
+          <InputWithLabel
+            label="Department"
+            value={formData.department}
+            onChange={(e) =>
+              setFormData({ ...formData, department: e.target.value })
+            }
+          />
+          <InputWithLabel
+            label="Pay Period"
+            value={formData.payPeriod}
+            onChange={(e) =>
+              setFormData({ ...formData, payPeriod: e.target.value })
+            }
+          />
         </div>
         <Separator />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4">
           <div className="grid gap-1">
             <div className="text-sm font-medium">Earnings</div>
-            <div>
-              <ul className="grid gap-1 text-muted-foreground">
-                {earnings.map((field, index) => (
-                  <li key={index} className="flex justify-between">
-                    <Input
-                      type="text"
-                      className="w-full"
-                      value={field.name}
-                      onChange={(e) =>
-                        handleFieldChange(
-                          "earnings",
-                          index,
-                          "name",
-                          e.target.value
-                        )
-                      }
-                    />
-                    <Input
-                      type="text"
-                      className="w-24"
-                      value={field.amount}
-                      onChange={(e) =>
-                        handleFieldChange(
-                          "earnings",
-                          index,
-                          "amount",
-                          e.target.value
-                        )
-                      }
-                    />
-                  </li>
-                ))}
-              </ul>
-              <Button
-                className="mt-2"
-                onClick={() => handleAddField("earnings")}
-              >
-                Add New Field
-              </Button>
-            </div>
+            {earnings.map((field, index) => (
+              <div key={index} className="flex gap-2">
+                <InputWithLabel
+                  label="Earnings name"
+                  value={field.name}
+                  onChange={(e) =>
+                    handleFieldChange("earnings", index, "name", e.target.value)
+                  }
+                />
+                <InputWithLabel
+                  label="Amount"
+                  value={field.amount}
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "earnings",
+                      index,
+                      "amount",
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+            ))}
+            <Button onClick={() => handleAddField("earnings")}>
+              Add Earnings
+            </Button>
           </div>
           <div className="grid gap-1">
             <div className="text-sm font-medium">Deductions</div>
-            <div>
-              <ul className="grid gap-1 text-muted-foreground">
-                {deductions.map((field, index) => (
-                  <li key={index} className="flex justify-between">
-                    <Input
-                      type="text"
-                      className="w-full"
-                      value={field.name}
-                      onChange={(e) =>
-                        handleFieldChange(
-                          "deductions",
-                          index,
-                          "name",
-                          e.target.value
-                        )
-                      }
-                    />
-                    <Input
-                      type="text"
-                      className="w-24"
-                      value={field.amount}
-                      onChange={(e) =>
-                        handleFieldChange(
-                          "deductions",
-                          index,
-                          "amount",
-                          e.target.value
-                        )
-                      }
-                    />
-                  </li>
-                ))}
-              </ul>
-              <Button
-                className="mt-2"
-                onClick={() => handleAddField("deductions")}
-              >
-                Add New Field
-              </Button>
-            </div>
-          </div>
-        </div>
-        <Separator />
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-1">
-            <div className="text-sm font-medium">Net Pay</div>
-            <div className="text-2xl font-bold">₹41,800</div>
-          </div>
-          <div className="grid gap-1">
-            <div className="text-sm font-medium">Payment Method</div>
-            <Input
-              type="text"
-              className="w-full"
-              defaultValue="Bank Transfer"
-            />
+            {deductions.map((field, index) => (
+              <div key={index} className="flex gap-2">
+                <InputWithLabel
+                  label="Deduction name"
+                  value={field.name}
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "deductions",
+                      index,
+                      "name",
+                      e.target.value
+                    )
+                  }
+                />
+                <InputWithLabel
+                  label="Amount"
+                  value={field.amount}
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "deductions",
+                      index,
+                      "amount",
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+            ))}
+            <Button onClick={() => handleAddField("deductions")}>
+              Add Deductions
+            </Button>
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between border-t pt-4">
-        <div className="text-xs text-muted-foreground">
-          This is a computer-generated payslip and does not require a signature.
-        </div>
-        {/* <Button onClick={() => generatePDF()}>Generate Payslip</Button> */}
+      <CardFooter className="flex justify-end border-t pt-4">
+        <Button onClick={generatePayslip}>Generate Payslip</Button>
       </CardFooter>
     </Card>
   );
