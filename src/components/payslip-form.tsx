@@ -117,146 +117,160 @@ export const PayslipForm = () => {
     setShowSummary(true);
   };
 
-  if (showSummary) {
-    return <PayslipSummary formData={formData} />;
-  }
-
   return (
-    <Card className="w-full max-w-2xl">
-      <CardHeader className="flex items-center justify-between border-b pb-4">
-        <div className="flex items-center gap-4">
-          <img
-            src="/placeholder.svg"
-            alt="Company Logo"
-            width={48}
-            height={48}
-            className="rounded-md"
-            style={{ aspectRatio: "48/48", objectFit: "cover" }}
-          />
-          <div className="grid gap-1">
-            <div className="text-lg font-semibold">Acme Inc.</div>
-            <div className="text-sm text-muted-foreground">Payslip Form</div>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="grid gap-6 py-6">
-        <div className="grid gap-4">
-          <InputWithLabel
-            label="Employee Name"
-            value={formData.employeeName}
-            onChange={(e) =>
-              setFormData({ ...formData, employeeName: e.target.value })
-            }
-          />
-          <InputWithLabel
-            label="Employee ID"
-            value={formData.employeeId}
-            onChange={(e) =>
-              setFormData({ ...formData, employeeId: e.target.value })
-            }
-          />
-          <InputWithLabel
-            label="Designation"
-            value={formData.designation}
-            onChange={(e) =>
-              setFormData({ ...formData, designation: e.target.value })
-            }
-          />
-          <InputWithLabel
-            label="Department"
-            value={formData.department}
-            onChange={(e) =>
-              setFormData({ ...formData, department: e.target.value })
-            }
-          />
-          <InputWithLabel
-            label="Pay Period"
-            value={formData.payPeriod}
-            onChange={(e) =>
-              setFormData({ ...formData, payPeriod: e.target.value })
-            }
-          />
-          <InputWithLabel
-            label="Working Days Paid For"
-            value={workingDaysPaidFor}
-            onChange={(e) => setWorkingDaysPaidFor(e.target.value)}
-          />
-          <InputWithLabel
-            label="Number of LOPs"
-            value={noOfLops}
-            onChange={(e) => setNoOfLops(e.target.value)}
-          />
-        </div>
-        <Separator />
-        <div className="grid gap-4">
-          <div className="grid gap-1">
-            <div className="text-sm font-medium">Earnings</div>
-            {earnings.map((field, index) => (
-              <div key={index} className="flex gap-2">
+    <>
+      <div className="flex justify-between p-4 space-x-4">
+         <div className="w-1/2">
+          <Card className="w-full max-w-2xl">
+            <CardHeader className="flex items-center justify-between border-b pb-4">
+              <div className="flex items-center gap-4">
+                <img
+                  src="/placeholder.svg"
+                  alt="Company Logo"
+                  width={48}
+                  height={48}
+                  className="rounded-md"
+                  style={{ aspectRatio: "48/48", objectFit: "cover" }}
+                />
+                <div className="grid gap-1">
+                  <div className="text-lg font-semibold">Acme Inc.</div>
+                  <div className="text-sm text-muted-foreground">
+                    Payslip Form
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="grid gap-6 py-6">
+              <div className="grid gap-4">
                 <InputWithLabel
-                  label="Earnings name"
-                  value={field.name}
+                  label="Employee Name"
+                  value={formData.employeeName}
                   onChange={(e) =>
-                    handleFieldChange("earnings", index, "name", e.target.value)
+                    setFormData({ ...formData, employeeName: e.target.value })
                   }
                 />
                 <InputWithLabel
-                  label="Amount"
-                  value={field.amount}
+                  label="Employee ID"
+                  value={formData.employeeId}
                   onChange={(e) =>
-                    handleFieldChange(
-                      "earnings",
-                      index,
-                      "amount",
-                      e.target.value
-                    )
+                    setFormData({ ...formData, employeeId: e.target.value })
                   }
+                />
+                <InputWithLabel
+                  label="Designation"
+                  value={formData.designation}
+                  onChange={(e) =>
+                    setFormData({ ...formData, designation: e.target.value })
+                  }
+                />
+                <InputWithLabel
+                  label="Department"
+                  value={formData.department}
+                  onChange={(e) =>
+                    setFormData({ ...formData, department: e.target.value })
+                  }
+                />
+                <InputWithLabel
+                  label="Pay Period"
+                  value={formData.payPeriod}
+                  onChange={(e) =>
+                    setFormData({ ...formData, payPeriod: e.target.value })
+                  }
+                />
+                <InputWithLabel
+                  label="Working Days Paid For"
+                  value={workingDaysPaidFor}
+                  onChange={(e) => setWorkingDaysPaidFor(e.target.value)}
+                />
+                <InputWithLabel
+                  label="Number of LOPs"
+                  value={noOfLops}
+                  onChange={(e) => setNoOfLops(e.target.value)}
                 />
               </div>
-            ))}
-            <Button onClick={() => handleAddField("earnings")}>
-              Add Earnings
-            </Button>
-          </div>
-          <div className="grid gap-1">
-            <div className="text-sm font-medium">Deductions</div>
-            {deductions.map((field, index) => (
-              <div key={index} className="flex gap-2">
-                <InputWithLabel
-                  label="Deduction name"
-                  value={field.name}
-                  onChange={(e) =>
-                    handleFieldChange(
-                      "deductions",
-                      index,
-                      "name",
-                      e.target.value
-                    )
-                  }
-                />
-                <InputWithLabel
-                  label="Amount"
-                  value={field.amount}
-                  onChange={(e) =>
-                    handleFieldChange(
-                      "deductions",
-                      index,
-                      "amount",
-                      e.target.value
-                    )
-                  }
-                />
+              <Separator />
+              <div className="grid gap-4">
+                <div className="grid gap-1">
+                  <div className="text-sm font-medium">Earnings</div>
+                  {earnings.map((field, index) => (
+                    <div key={index} className="flex gap-2">
+                      <InputWithLabel
+                        label="Earnings name"
+                        value={field.name}
+                        onChange={(e) =>
+                          handleFieldChange(
+                            "earnings",
+                            index,
+                            "name",
+                            e.target.value
+                          )
+                        }
+                      />
+                      <InputWithLabel
+                        label="Amount"
+                        value={field.amount}
+                        onChange={(e) =>
+                          handleFieldChange(
+                            "earnings",
+                            index,
+                            "amount",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </div>
+                  ))}
+                  <Button onClick={() => handleAddField("earnings")}>
+                    Add Earnings
+                  </Button>
+                </div>
+                <div className="grid gap-1">
+                  <div className="text-sm font-medium">Deductions</div>
+                  {deductions.map((field, index) => (
+                    <div key={index} className="flex gap-2">
+                      <InputWithLabel
+                        label="Deduction name"
+                        value={field.name}
+                        onChange={(e) =>
+                          handleFieldChange(
+                            "deductions",
+                            index,
+                            "name",
+                            e.target.value
+                          )
+                        }
+                      />
+                      <InputWithLabel
+                        label="Amount"
+                        value={field.amount}
+                        onChange={(e) =>
+                          handleFieldChange(
+                            "deductions",
+                            index,
+                            "amount",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </div>
+                  ))}
+                  <Button onClick={() => handleAddField("deductions")}>
+                    Add Deductions
+                  </Button>
+                </div>
               </div>
-            ))}
-            <Button onClick={() => handleAddField("deductions")}>
-              Add Deductions
-            </Button>
-          </div>
+            </CardContent>
+            <CardFooter className="flex justify-end border-t pt-4">
+              <Button onClick={generatePayslip}>Generate Payslip</Button>
+            </CardFooter>
+          </Card>
         </div>
-      </CardContent>
-      <CardFooter className="flex justify-end border-t pt-4">
-        <Button onClick={generatePayslip}>Generate Payslip</Button>
-      </CardFooter>
-    </Card>
+          {showSummary && (
+            <div className="w-1/2">
+              <PayslipSummary formData={formData} />
+            </div>
+          )}
+      </div>
+    </>
   );
 };
