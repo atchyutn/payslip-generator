@@ -76,7 +76,7 @@ const downloadPDF = () => {
 
   // Earnings Table
    (doc as jsPDF & { autoTable: autoTable }).autoTable({
-    startY: 70,
+    startY: 90,
     head: [["Earnings", "Amount"]],
     body: earnings.map((field) => [
       field.name,
@@ -208,15 +208,16 @@ const downloadPDF = () => {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between border-t pt-4">
-        <div className="text-xs text-muted-foreground">
+      <div className="">
+        <div className="text-xs text-muted-foreground text-center mb-2">
           This is a computer-generated payslip and does not require a signature.
         </div>
-        <div className="flex gap-2">
+        <Separator />
+        <div className="flex gap-8  m-4 justify-center">
           <Button onClick={downloadPDF}>Download as PDF</Button>
           <Button onClick={sendEmail}>Send via Email</Button>
         </div>
-      </CardFooter>
+      </div>
     </Card>
   );
 };

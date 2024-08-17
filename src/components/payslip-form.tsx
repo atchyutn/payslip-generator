@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -28,7 +28,7 @@ const InputWithLabel: React.FC<{
 
 export const PayslipForm = () => {
   const [companyLogo, setCompanyLogo] = useState("/placeholder.svg");
-  const [companyName, setCompanyName] = useState("Hela and Heed");
+  const [companyName, setCompanyName] = useState("Company Name");
   const [workingDaysPaidFor, setWorkingDaysPaidFor] = useState("20");
   const [noOfLops, setNoOfLops] = useState("2");
 
@@ -46,7 +46,6 @@ export const PayslipForm = () => {
     { name: "Professional Tax", amount: "₹200" },
   ]);
 
-  // Function to calculate net pay
   const calculateNetPay = () => {
     const totalEarnings = earnings.reduce(
       (acc, item) =>
@@ -109,7 +108,7 @@ export const PayslipForm = () => {
     }
   };
 
-  const generatePayslip = () => {
+  useEffect(() => {
     setFormData({
       ...formData,
       companyName: companyName,
@@ -121,7 +120,14 @@ export const PayslipForm = () => {
       netPay: calculateNetPay(),
     });
     setShowSummary(true);
-  };
+  }, [
+    companyLogo,
+    companyName,
+    workingDaysPaidFor,
+    noOfLops,
+    earnings,
+    deductions,
+  ]);
 
   return (
     <>
@@ -263,13 +269,18 @@ export const PayslipForm = () => {
                     </div>
                   ))}
                   <Button onClick={() => handleAddField("deductions")}>
-                    Add Deductions
+                    Add Deduction
                   </Button>
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end border-t pt-4">
-              <Button onClick={generatePayslip}>Generate Payslip</Button>
+            <CardFooter>
+              <Button
+                type="button"
+                onClick={() => setShowSummary(!showSummary)}
+              >
+                Toggle Summary
+              </Button>
             </CardFooter>
           </Card>
         </div>
@@ -282,5 +293,3 @@ export const PayslipForm = () => {
     </>
   );
 };
-
-export default PayslipForm;
