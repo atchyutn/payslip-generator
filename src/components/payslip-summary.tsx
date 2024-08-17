@@ -15,6 +15,8 @@ require("jspdf-autotable");
 
 // Define TypeScript interface for form data
 interface FormData {
+  companyName: string;
+  companyLogo: string;
   employeeName: string;
   employeeId: string;
   designation: string;
@@ -34,6 +36,8 @@ interface PayslipSummaryProps {
 
 const PayslipSummary: React.FC<PayslipSummaryProps> = ({ formData }) => {
   const {
+    companyName,
+    companyLogo,
     employeeName,
     employeeId,
     designation,
@@ -57,7 +61,7 @@ const downloadPDF = () => {
   // Header with Company Logo and Payslip Title
   // doc.addImage("/placeholder.svg", "PNG", 20, 20, 15, 15);
   doc.setFontSize(16);
-  doc.text("Acme Inc.", 40, 28);
+  doc.text(`${companyName} - Payslip`, 40, 28);
   doc.setFontSize(12);
   doc.text(`Pay Period: ${payPeriod}`, 130, 28);
 
@@ -127,7 +131,7 @@ const downloadPDF = () => {
       <CardHeader className="flex items-center justify-between border-b pb-4">
         <div className="flex items-center gap-4">
           <img
-            src="/placeholder.svg"
+            src={companyLogo}
             alt="Company Logo"
             width={48}
             height={48}
@@ -135,7 +139,7 @@ const downloadPDF = () => {
             style={{ aspectRatio: "48/48", objectFit: "cover" }}
           />
           <div className="grid gap-1">
-            <div className="text-lg font-semibold">Acme Inc.</div>
+            <div className="text-lg font-semibold">{companyName}</div>
           </div>
         </div>
         <div className="text-sm text-muted-foreground">

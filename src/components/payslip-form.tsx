@@ -27,6 +27,8 @@ const InputWithLabel: React.FC<{
 );
 
 export const PayslipForm = () => {
+  const [companyLogo, setCompanyLogo] = useState("/placeholder.svg");
+  const [companyName, setCompanyName] = useState("Hela and Heed");
   const [workingDaysPaidFor, setWorkingDaysPaidFor] = useState("20");
   const [noOfLops, setNoOfLops] = useState("2");
 
@@ -61,6 +63,8 @@ export const PayslipForm = () => {
   };
 
   const [formData, setFormData] = useState({
+    companyName: companyName,
+    companyLogo: companyLogo,
     employeeName: "Raj Kumar",
     employeeId: "EMP-0123",
     designation: "Software Engineer",
@@ -108,6 +112,8 @@ export const PayslipForm = () => {
   const generatePayslip = () => {
     setFormData({
       ...formData,
+      companyName: companyName,
+      companyLogo: companyLogo,
       workingDaysPaidFor,
       noOfLops,
       earnings: earnings,
@@ -120,28 +126,30 @@ export const PayslipForm = () => {
   return (
     <>
       <div className="flex justify-between p-4 space-x-4">
-         <div className="w-1/2">
+        <div className="w-1/2">
           <Card className="w-full max-w-2xl">
-            <CardHeader className="flex items-center justify-between border-b pb-4">
-              <div className="flex items-center gap-4">
-                <img
-                  src="/placeholder.svg"
-                  alt="Company Logo"
-                  width={48}
-                  height={48}
-                  className="rounded-md"
-                  style={{ aspectRatio: "48/48", objectFit: "cover" }}
+            <CardHeader className="flex border-b pb-4">
+              <h1 className="text-xs font-bold text-center">
+                Please fill in the details to generate the payslip or add new
+                fields of your choice
+              </h1>
+              <div className="grid gap-6 py-6">
+                <InputWithLabel
+                  label="Company Logo URL"
+                  value={companyLogo}
+                  onChange={(e) => setCompanyLogo(e.target.value)}
                 />
-                <div className="grid gap-1">
-                  <div className="text-lg font-semibold">Acme Inc.</div>
-                  <div className="text-sm text-muted-foreground">
-                    Payslip Form
-                  </div>
+                <div className="grid gap-1 flex-1">
+                  <InputWithLabel
+                    label="Company Name"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                  />
                 </div>
               </div>
             </CardHeader>
             <CardContent className="grid gap-6 py-6">
-              <div className="grid gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <InputWithLabel
                   label="Employee Name"
                   value={formData.employeeName}
@@ -265,12 +273,14 @@ export const PayslipForm = () => {
             </CardFooter>
           </Card>
         </div>
-          {showSummary && (
-            <div className="w-1/2">
-              <PayslipSummary formData={formData} />
-            </div>
-          )}
+        {showSummary && (
+          <div className="w-1/2">
+            <PayslipSummary formData={formData} />
+          </div>
+        )}
       </div>
     </>
   );
 };
+
+export default PayslipForm;
