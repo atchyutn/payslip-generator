@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import React from "react";
 import {
   Card,
@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import jsPDF from "jspdf";
-import { autoTable, RowInput } from "jspdf-autotable";
+import autoTable, { RowInput } from "jspdf-autotable";
 require("jspdf-autotable");
 
 
@@ -53,75 +53,141 @@ const PayslipSummary: React.FC<PayslipSummaryProps> = ({ formData }) => {
     paymentMethod,
   } = formData;
 
-const downloadPDF = () => {
-  const doc = new jsPDF();
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
 
-  // Set font and size
-  doc.setFont("helvetica");
-  doc.setFontSize(12);
+    // Helper function to add Rupee symbol if missing
+    const formatAmount = (amount: string) =>
+      amount.includes("₹") ? amount : `₹${amount}`;
 
-  // Header with Company Logo and Payslip Title
-  // doc.addImage("/placeholder.svg", "PNG", 20, 20, 15, 15);
-  doc.setFontSize(16);
-  doc.text(`${companyName} - Payslip`, 40, 28);
-  doc.setFontSize(12);
-  doc.text(`Pay Period: ${payPeriodFrom} - ${payPeriodTo}`, 130, 28);
+    // Set font and colors
+    doc.setFont("helvetica");
+    doc.setFontSize(10);
+    const primaryColor = [41, 128, 185] as [number, number, number];
+    const secondaryColor = [149, 165, 166] as [number, number, number];
 
-  // Employee details
-  doc.setFontSize(12);
-  doc.text(`Employee Name: ${employeeName}`, 20, 50);
-  doc.text(`Employee ID: ${employeeId}`, 120, 50);
-  doc.text(`Designation: ${designation}`, 20, 60);
-  doc.text(`Department: ${department}`, 120, 60);
-  doc.text(`Working Days Paid For: ${workingDaysPaidFor}`, 20, 70);
-  doc.text(`No. of LOPs: ${noOfLops}`, 120, 70);
+    // Header with Company Logo and Payslip Title
+    // doc.addImage("/placeholder.svg", "PNG", 20, 20, 15, 15); // Company Logo 
+    doc.setFillColor(...primaryColor);
+    doc.rect(0, 0, pageWidth, 40, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.text(`${companyName} - Payslip`, 20, 25);
+    doc.setFontSize(12);
+    doc.text(`Pay Period: ${payPeriodFrom} to ${payPeriodTo}`, 20, 35);
 
-  // Earnings Table
-   (doc as jsPDF & { autoTable: autoTable }).autoTable({
-    startY: 90,
-    head: [["Earnings", "Amount"]],
-    body: earnings.map((field) => [
-      field.name,
-      field.amount.includes("₹") ? field.amount : `₹${field.amount}`, // Add Rupee symbol if missing
-    ]),
-    theme: "grid",
-    headStyles: { fillColor: [220, 220, 220] },
-  });
+    // Employee details
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.text("Employee Details", 20, 55);
+    doc.setDrawColor(...secondaryColor);
+    doc.line(20, 57, pageWidth - 20, 57);
 
-  // Deductions Table
-   (doc as jsPDF & { autoTable: autoTable }).autoTable({
-    startY:  (doc as any).lastAutoTable.finalY + 10, // Start after the previous table
-    head: [["Deductions", "Amount"]],
-    body: deductions.map((field) => [
-      field.name,
-      field.amount.includes("₹") ? field.amount : `₹${field.amount}`, // Add Rupee symbol if missing
-    ]),
-    theme: "grid",
-    headStyles: { fillColor: [220, 220, 220] },
-  });
+    const employeeDetails = [
+      ["Employee Name", employeeName, "Employee ID", employeeId],
+      ["Designation", designation, "Department", department],
+      ["Working Days", workingDaysPaidFor, "LOPs", noOfLops],
+    ];
 
-  // Net Pay and Payment Method
-  doc.setFontSize(12);
-  doc.text(`Net Pay: ₹${netPay}`, 20,  (doc as any).lastAutoTable.finalY + 20);
-  doc.text(
-    `Payment Method: ${paymentMethod}`,
-    20,
-     (doc as any).lastAutoTable.finalY + 30
-  );
+    autoTable(doc, {
+      startY: 60,
+      head: [],
+      body: employeeDetails,
+      theme: "plain",
+      styles: { fontSize: 10, cellPadding: 1 },
+      columnStyles: {
+        0: { fontStyle: "bold", cellWidth: 40 },
+        1: { cellWidth: 60 },
+        2: { fontStyle: "bold", cellWidth: 40 },
+        3: { cellWidth: 60 },
+      },
+    });
 
-  // Footer note
-  doc.setFontSize(10);
-  doc.text(
-    "This is a computer-generated payslip and does not require a signature.",
-    20,
-     (doc as any).lastAutoTable.finalY + 50
-  );
+    // Earnings Table
+    doc.setFontSize(12);
+    doc.text("Earnings", 20, (doc as any).lastAutoTable.finalY + 15);
+    doc.line(
+      20,
+      (doc as any).lastAutoTable.finalY + 17,
+      pageWidth - 20,
+      (doc as any).lastAutoTable.finalY + 17
+    );
 
-  // Download the PDF
-  doc.save(`Payslip_${employeeName}_${employeeId}.pdf`);
-};
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 20,
+      head: [["Description", "Amount"]],
+      body: earnings.map((field) => [field.name, formatAmount(field.amount)]),
+      theme: "striped",
+      headStyles: { fillColor: primaryColor, textColor: [255, 255, 255] },
+      columnStyles: {
+        0: { cellWidth: 100 },
+        1: { cellWidth: 60, halign: "right" },
+      },
+    });
 
+    // Deductions Table
+    doc.setFontSize(12);
+    doc.text("Deductions", 20, (doc as any).lastAutoTable.finalY + 15);
+    doc.line(
+      20,
+      (doc as any).lastAutoTable.finalY + 17,
+      pageWidth - 20,
+      (doc as any).lastAutoTable.finalY + 17
+    );
 
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 20,
+      head: [["Description", "Amount"]],
+      body: deductions.map((field) => [field.name, formatAmount(field.amount)]),
+      theme: "striped",
+      headStyles: { fillColor: primaryColor, textColor: [255, 255, 255] },
+      columnStyles: {
+        0: { cellWidth: 100 },
+        1: { cellWidth: 60, halign: "right" },
+      },
+    });
+
+    // Net Pay and Payment Method
+    // doc.setFillColor(...secondaryColor);
+    doc.rect(
+      20,
+      (doc as any).lastAutoTable.finalY + 10,
+      pageWidth - 40,
+      25,
+      "F"
+    );
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
+    doc.text("Net Pay:", 25, (doc as any).lastAutoTable.finalY + 25);
+    doc.setFontSize(16);
+    doc.text(
+      formatAmount(netPay),
+      pageWidth - 25,
+      (doc as any).lastAutoTable.finalY + 25,
+      { align: "right" }
+    );
+    doc.setFontSize(10);
+    doc.text(
+      `Payment Method: ${paymentMethod}`,
+      25,
+      (doc as any).lastAutoTable.finalY + 30
+    );
+
+    // Footer note
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(8);
+    doc.text(
+      "This is a computer-generated payslip and does not require a signature.",
+      pageWidth / 2,
+      pageHeight - 10,
+      { align: "center" }
+    );
+
+    // Download the PDF
+    doc.save(`Payslip_${employeeName}_${employeeId}.pdf`);
+  };
 
   const sendEmail = () => {
     // Implement send email logic here
@@ -210,16 +276,19 @@ const downloadPDF = () => {
           </div>
         </div>
       </CardContent>
-      <div className="">
-        <div className="text-xs text-muted-foreground text-center mb-2">
-          This is a computer-generated payslip and does not require a signature.
+      <CardFooter>
+        <div className="w-full">
+          <div className="text-xs text-muted-foreground text-center mb-2">
+            This is a computer-generated payslip and does not require a
+            signature.
+          </div>
+          <Separator />
+          <div className="flex gap-8 m-4 justify-center">
+            <Button onClick={downloadPDF}>Download as PDF</Button>
+            <Button onClick={sendEmail}>Send via Email</Button>
+          </div>
         </div>
-        <Separator />
-        <div className="flex gap-8  m-4 justify-center">
-          <Button onClick={downloadPDF}>Download as PDF</Button>
-          <Button onClick={sendEmail}>Send via Email</Button>
-        </div>
-      </div>
+      </CardFooter>
     </Card>
   );
 };
