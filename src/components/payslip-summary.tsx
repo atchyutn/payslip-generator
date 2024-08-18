@@ -21,7 +21,8 @@ interface FormData {
   employeeId: string;
   designation: string;
   department: string;
-  payPeriod: string;
+  payPeriodFrom: string;
+  payPeriodTo: string;
   workingDaysPaidFor: string;
   noOfLops: string;
   earnings: { name: string; amount: string }[];
@@ -42,7 +43,8 @@ const PayslipSummary: React.FC<PayslipSummaryProps> = ({ formData }) => {
     employeeId,
     designation,
     department,
-    payPeriod,
+    payPeriodFrom,
+    payPeriodTo,
     workingDaysPaidFor,
     noOfLops,
     earnings,
@@ -59,11 +61,11 @@ const downloadPDF = () => {
   doc.setFontSize(12);
 
   // Header with Company Logo and Payslip Title
-  doc.addImage("/placeholder.svg", "PNG", 20, 20, 15, 15);
+  // doc.addImage("/placeholder.svg", "PNG", 20, 20, 15, 15);
   doc.setFontSize(16);
   doc.text(`${companyName} - Payslip`, 40, 28);
   doc.setFontSize(12);
-  doc.text(`Pay Period: ${payPeriod}`, 130, 28);
+  doc.text(`Pay Period: ${payPeriodFrom} - ${payPeriodTo}`, 130, 28);
 
   // Employee details
   doc.setFontSize(12);
@@ -116,7 +118,7 @@ const downloadPDF = () => {
   );
 
   // Download the PDF
-  doc.save(`Payslip_${employeeName}_${payPeriod}.pdf`);
+  doc.save(`Payslip_${employeeName}_${employeeId}.pdf`);
 };
 
 
@@ -143,7 +145,7 @@ const downloadPDF = () => {
           </div>
         </div>
         <div className="text-sm text-muted-foreground">
-          Pay Period: {payPeriod}
+          Pay Period: {payPeriodFrom} - {payPeriodTo}
         </div>
       </CardHeader>
       <CardContent className="grid gap-6 py-6">

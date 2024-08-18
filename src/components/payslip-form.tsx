@@ -10,15 +10,21 @@ import { Button } from "@/components/ui/button";
 import PayslipSummary from "./payslip-summary";
 import { Separator } from "./ui/separator";
 
+interface FinancialEntry {
+  name: string;
+  amount: string;
+}
+
 const InputWithLabel: React.FC<{
   label: string;
   value: string;
+  type?: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}> = ({ label, value, onChange }) => (
+}> = ({ label, value, onChange, type = "text" }) => (
   <div className="grid gap-1">
     <label className="text-sm font-medium">{label}</label>
     <input
-      type="text"
+      type={type}
       className="border border-gray-300 p-2 rounded"
       value={value}
       onChange={onChange}
@@ -27,63 +33,44 @@ const InputWithLabel: React.FC<{
 );
 
 export const PayslipForm = () => {
-  const [companyLogo, setCompanyLogo] = useState("./placeholder.svg");
-  const [companyName, setCompanyName] = useState("Company Name");
-  const [workingDaysPaidFor, setWorkingDaysPaidFor] = useState("20");
-  const [noOfLops, setNoOfLops] = useState("2");
+  const [companyLogo, setCompanyLogo] = useState<string>("");
+  const [companyName, setCompanyName] = useState<string>("");
+  const [employeeName, setEmployeeName] = useState<string>("");
+  const [employeeId, setEmployeeId] = useState<string>("");
+  const [designation, setDesignation] = useState<string>("");
+  const [department, setDepartment] = useState<string>("");
+  const [workingDaysPaidFor, setWorkingDaysPaidFor] = useState<string>("");
+  const [noOfLops, setNoOfLops] = useState<string>("");
+  const [payPeriodFrom, setPayPeriodFrom] = useState<string>("");
+  const [payPeriodTo, setPayPeriodTo] = useState<string>("");
+  const [netPay, setNetPay] = useState<string>(""); 
 
-  const [earnings, setEarnings] = useState<{ name: string; amount: string }[]>([
-    { name: "Basic Salary", amount: "₹40,000" },
-    { name: "Allowances", amount: "₹5,000" },
-    { name: "Bonus", amount: "₹5,000" },
-  ]);
-
-  const [deductions, setDeductions] = useState<
-    { name: string; amount: string }[]
-  >([
-    { name: "Provident Fund", amount: "₹5,000" },
-    { name: "Income Tax", amount: "₹3,000" },
-    { name: "Professional Tax", amount: "₹200" },
-  ]);
-
-  const calculateNetPay = () => {
-    const totalEarnings = earnings.reduce(
-      (acc, item) =>
-        acc + parseFloat(item.amount.replace("₹", "").replace(",", "")),
-      0
-    );
-    const totalDeductions = deductions.reduce(
-      (acc, item) =>
-        acc + parseFloat(item.amount.replace("₹", "").replace(",", "")),
-      0
-    );
-    const netPay = totalEarnings - totalDeductions;
-    return `₹${netPay.toLocaleString()}`;
-  };
+  const [earnings, setEarnings] = useState<FinancialEntry[]>([]);
+  const [deductions, setDeductions] = useState<FinancialEntry[]>([]);
 
   const [formData, setFormData] = useState({
-    companyName: companyName,
-    companyLogo: companyLogo,
-    employeeName: "Raj Kumar",
-    employeeId: "EMP-0123",
-    designation: "Software Engineer",
-    department: "Engineering",
-    payPeriod: "June 1, 2023 - June 30, 2023",
-    workingDaysPaidFor: workingDaysPaidFor,
-    noOfLops: noOfLops,
-    earnings: earnings,
-    deductions: deductions,
-    netPay: calculateNetPay(),
-    paymentMethod: "Bank Transfer",
+    companyName: "",
+    companyLogo: "",
+    employeeName: "",
+    employeeId: "",
+    designation: "",
+    department: "",
+    payPeriodFrom: "",
+    payPeriodTo: "",
+    workingDaysPaidFor: "",
+    noOfLops: "",
+    earnings: [] as FinancialEntry[],
+    deductions: [] as FinancialEntry[],
+    netPay: "₹0",
+    paymentMethod: "",
   });
 
-  const [showSummary, setShowSummary] = useState(false);
-
   const handleAddField = (type: "earnings" | "deductions") => {
+    const newEntry: FinancialEntry = { name: "", amount: "" };
     if (type === "earnings") {
-      setEarnings([...earnings, { name: "", amount: "" }]);
+      setEarnings([...earnings, newEntry]);
     } else if (type === "deductions") {
-      setDeductions([...deductions, { name: "", amount: "" }]);
+      setDeductions([...deductions, newEntry]);
     }
   };
 
@@ -108,18 +95,63 @@ export const PayslipForm = () => {
     }
   };
 
+  const calculateNetPay = () => {
+    const totalEarnings = earnings.reduce(
+      (acc, item) =>
+        acc + parseFloat(item.amount.replace("₹", "").replace(",", "")),
+      0
+    );
+    const totalDeductions = deductions.reduce(
+      (acc, item) =>
+        acc + parseFloat(item.amount.replace("₹", "").replace(",", "")),
+      0
+    );
+    const netPay = totalEarnings - totalDeductions;
+    return `₹${netPay.toLocaleString()}`;
+  };
+
+  const handleSampleData = () => {
+    setCompanyLogo("./placeholder.svg");
+    setCompanyName("Sample Company");
+    setWorkingDaysPaidFor("20");
+    setEmployeeName("John Doe");
+    setEmployeeId("EMP001");
+    setDesignation("Software Engineer");
+    setDepartment("Engineering");
+    setNoOfLops("2");
+    setPayPeriodFrom("2024-08-01");
+    setPayPeriodTo("2024-08-31");
+
+    setEarnings([
+      { name: "Basic Salary", amount: "₹40,000" },
+      { name: "Allowances", amount: "₹5,000" },
+      { name: "Bonus", amount: "₹5,000" },
+    ]);
+
+    setDeductions([
+      { name: "Provident Fund", amount: "₹5,000" },
+      { name: "Income Tax", amount: "₹3,000" },
+      { name: "Professional Tax", amount: "₹200" },
+    ]);
+  };
+
   useEffect(() => {
     setFormData({
-      ...formData,
       companyName: companyName,
       companyLogo: companyLogo,
-      workingDaysPaidFor,
-      noOfLops,
+      employeeName: employeeName,
+      employeeId: employeeId,
+      designation: designation,
+      department:  department,
+      payPeriodFrom: payPeriodFrom,
+      payPeriodTo: payPeriodTo,
+      workingDaysPaidFor: workingDaysPaidFor,
+      noOfLops: noOfLops,
       earnings: earnings,
       deductions: deductions,
       netPay: calculateNetPay(),
+      paymentMethod: formData.paymentMethod,
     });
-    setShowSummary(true);
   }, [
     companyLogo,
     companyName,
@@ -127,6 +159,12 @@ export const PayslipForm = () => {
     noOfLops,
     earnings,
     deductions,
+    payPeriodFrom,
+    payPeriodTo,
+    formData.employeeName,
+    formData.employeeId,
+    formData.designation,
+    formData.department,
   ]);
 
   return (
@@ -135,10 +173,11 @@ export const PayslipForm = () => {
         <div className="w-1/2">
           <Card className="w-full max-w-2xl">
             <CardHeader className="flex border-b pb-4">
-              <h1 className="text-xs font-bold text-center">
-                Please fill in the details to generate the payslip or add new
-                fields of your choice
-              </h1>
+              <div className="flex justify-between w-full">
+                <Button onClick={handleSampleData} className="text-sm">
+                  Add Sample Data
+                </Button>
+              </div>
               <div className="grid gap-6 py-6">
                 <InputWithLabel
                   label="Company Logo URL"
@@ -160,36 +199,44 @@ export const PayslipForm = () => {
                   label="Employee Name"
                   value={formData.employeeName}
                   onChange={(e) =>
-                    setFormData({ ...formData, employeeName: e.target.value })
+                    setEmployeeName(e.target.value)
                   }
                 />
                 <InputWithLabel
                   label="Employee ID"
                   value={formData.employeeId}
                   onChange={(e) =>
-                    setFormData({ ...formData, employeeId: e.target.value })
+                    setEmployeeId(e.target.value)
                   }
                 />
                 <InputWithLabel
                   label="Designation"
                   value={formData.designation}
                   onChange={(e) =>
-                    setFormData({ ...formData, designation: e.target.value })
+                    setDesignation(e.target.value)
                   }
+
                 />
                 <InputWithLabel
                   label="Department"
                   value={formData.department}
                   onChange={(e) =>
-                    setFormData({ ...formData, department: e.target.value })
-                  }
+                    setDepartment(e.target.value)}
                 />
                 <InputWithLabel
-                  label="Pay Period"
-                  value={formData.payPeriod}
-                  onChange={(e) =>
-                    setFormData({ ...formData, payPeriod: e.target.value })
+                  label="Pay Period From"
+                  value={payPeriodFrom}
+                  onChange={(e) => 
+                    setPayPeriodFrom(e.target.value)
+
                   }
+                  type="date"
+                />
+                <InputWithLabel
+                  label="Pay Period To"
+                  value={payPeriodTo}
+                  onChange={(e) => setPayPeriodTo(e.target.value)}
+                  type="date"
                 />
                 <InputWithLabel
                   label="Working Days Paid For"
@@ -243,7 +290,7 @@ export const PayslipForm = () => {
                   {deductions.map((field, index) => (
                     <div key={index} className="flex gap-2">
                       <InputWithLabel
-                        label="Deduction name"
+                        label="Deductions name"
                         value={field.name}
                         onChange={(e) =>
                           handleFieldChange(
@@ -269,26 +316,16 @@ export const PayslipForm = () => {
                     </div>
                   ))}
                   <Button onClick={() => handleAddField("deductions")}>
-                    Add Deduction
+                    Add Deductions
                   </Button>
                 </div>
               </div>
             </CardContent>
-            <CardFooter>
-              <Button
-                type="button"
-                onClick={() => setShowSummary(!showSummary)}
-              >
-                Toggle Summary
-              </Button>
-            </CardFooter>
           </Card>
         </div>
-        {showSummary && (
-          <div className="w-1/2">
-            <PayslipSummary formData={formData} />
-          </div>
-        )}
+        <div className="w-1/2">
+          <PayslipSummary formData={formData} />
+        </div>
       </div>
     </>
   );
