@@ -1,11 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import PayslipSummary from "./payslip-summary";
 import { Separator } from "./ui/separator";
@@ -15,11 +10,28 @@ interface FinancialEntry {
   amount: string;
 }
 
+interface FormData {
+  companyName: string;
+  companyLogo: string;
+  employeeName: string;
+  employeeId: string;
+  designation: string;
+  department: string;
+  payPeriodFrom: string;
+  payPeriodTo: string;
+  workingDaysPaidFor: string;
+  noOfLops: string;
+  earnings: FinancialEntry[];
+  deductions: FinancialEntry[];
+  netPay: string;
+  paymentMethod: string;
+}
+
 const InputWithLabel: React.FC<{
   label: string;
   value: string;
   type?: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (value: string) => void;
 }> = ({ label, value, onChange, type = "text" }) => (
   <div className="grid gap-1">
     <label className="text-sm font-medium">{label}</label>
@@ -27,28 +39,39 @@ const InputWithLabel: React.FC<{
       type={type}
       className="border border-gray-300 p-2 rounded"
       value={value}
-      onChange={onChange}
+      onChange={(e) => onChange(e.target.value)}
     />
   </div>
 );
 
-export const PayslipForm = () => {
-  const [companyLogo, setCompanyLogo] = useState<string>("");
-  const [companyName, setCompanyName] = useState<string>("");
-  const [employeeName, setEmployeeName] = useState<string>("");
-  const [employeeId, setEmployeeId] = useState<string>("");
-  const [designation, setDesignation] = useState<string>("");
-  const [department, setDepartment] = useState<string>("");
-  const [workingDaysPaidFor, setWorkingDaysPaidFor] = useState<string>("");
-  const [noOfLops, setNoOfLops] = useState<string>("");
-  const [payPeriodFrom, setPayPeriodFrom] = useState<string>("");
-  const [payPeriodTo, setPayPeriodTo] = useState<string>("");
-  const [netPay, setNetPay] = useState<string>(""); 
+const FinancialEntryInput: React.FC<{
+  entries: FinancialEntry[];
+  onAdd: () => void;
+  onChange: (index: number, key: keyof FinancialEntry, value: string) => void;
+  label: string;
+}> = ({ entries, onAdd, onChange, label }) => (
+  <div className="grid gap-1">
+    <div className="text-sm font-medium">{label}</div>
+    {entries.map((entry, index) => (
+      <div key={index} className="flex gap-2">
+        <InputWithLabel
+          label={`${label} name`}
+          value={entry.name}
+          onChange={(value) => onChange(index, "name", value)}
+        />
+        <InputWithLabel
+          label="Amount"
+          value={entry.amount}
+          onChange={(value) => onChange(index, "amount", value)}
+        />
+      </div>
+    ))}
+    <Button onClick={onAdd}>Add {label}</Button>
+  </div>
+);
 
-  const [earnings, setEarnings] = useState<FinancialEntry[]>([]);
-  const [deductions, setDeductions] = useState<FinancialEntry[]>([]);
-
-  const [formData, setFormData] = useState({
+export const PayslipForm: React.FC = () => {
+  const [formData, setFormData] = useState<FormData>({
     companyName: "",
     companyLogo: "",
     employeeName: "",
@@ -59,51 +82,40 @@ export const PayslipForm = () => {
     payPeriodTo: "",
     workingDaysPaidFor: "",
     noOfLops: "",
-    earnings: [] as FinancialEntry[],
-    deductions: [] as FinancialEntry[],
+    earnings: [],
+    deductions: [],
     netPay: "₹0",
     paymentMethod: "",
   });
 
+  const updateFormData = (key: keyof FormData, value: any) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
   const handleAddField = (type: "earnings" | "deductions") => {
     const newEntry: FinancialEntry = { name: "", amount: "" };
-    if (type === "earnings") {
-      setEarnings([...earnings, newEntry]);
-    } else if (type === "deductions") {
-      setDeductions([...deductions, newEntry]);
-    }
+    updateFormData(type, [...formData[type], newEntry]);
   };
 
   const handleFieldChange = (
     type: "earnings" | "deductions",
     index: number,
-    key: "name" | "amount",
+    key: keyof FinancialEntry,
     value: string
   ) => {
-    if (type === "earnings") {
-      setEarnings(
-        earnings.map((field, i) =>
-          i === index ? { ...field, [key]: value } : field
-        )
-      );
-    } else if (type === "deductions") {
-      setDeductions(
-        deductions.map((field, i) =>
-          i === index ? { ...field, [key]: value } : field
-        )
-      );
-    }
+    const updatedEntries = formData[type].map((entry, i) =>
+      i === index ? { ...entry, [key]: value } : entry
+    );
+    updateFormData(type, updatedEntries);
   };
 
-  const calculateNetPay = () => {
-    const totalEarnings = earnings.reduce(
-      (acc, item) =>
-        acc + parseFloat(item.amount.replace("₹", "").replace(",", "")),
+  const calculateNetPay = (): string => {
+    const totalEarnings = formData.earnings.reduce(
+      (acc, item) => acc + parseFloat(item.amount.replace(/[₹,]/g, "")),
       0
     );
-    const totalDeductions = deductions.reduce(
-      (acc, item) =>
-        acc + parseFloat(item.amount.replace("₹", "").replace(",", "")),
+    const totalDeductions = formData.deductions.reduce(
+      (acc, item) => acc + parseFloat(item.amount.replace(/[₹,]/g, "")),
       0
     );
     const netPay = totalEarnings - totalDeductions;
@@ -111,222 +123,121 @@ export const PayslipForm = () => {
   };
 
   const handleSampleData = () => {
-    setCompanyLogo("./placeholder.svg");
-    setCompanyName("Sample Company");
-    setWorkingDaysPaidFor("20");
-    setEmployeeName("John Doe");
-    setEmployeeId("EMP001");
-    setDesignation("Software Engineer");
-    setDepartment("Engineering");
-    setNoOfLops("2");
-    setPayPeriodFrom("2024-08-01");
-    setPayPeriodTo("2024-08-31");
-
-    setEarnings([
-      { name: "Basic Salary", amount: "₹40,000" },
-      { name: "Allowances", amount: "₹5,000" },
-      { name: "Bonus", amount: "₹5,000" },
-    ]);
-
-    setDeductions([
-      { name: "Provident Fund", amount: "₹5,000" },
-      { name: "Income Tax", amount: "₹3,000" },
-      { name: "Professional Tax", amount: "₹200" },
-    ]);
+    setFormData({
+      companyLogo: "./placeholder.svg",
+      companyName: "Sample Company",
+      employeeName: "John Doe",
+      employeeId: "EMP001",
+      designation: "Software Engineer",
+      department: "Engineering",
+      workingDaysPaidFor: "20",
+      noOfLops: "2",
+      payPeriodFrom: "2024-08-01",
+      payPeriodTo: "2024-08-31",
+      earnings: [
+        { name: "Basic Salary", amount: "₹40,000" },
+        { name: "Allowances", amount: "₹5,000" },
+        { name: "Bonus", amount: "₹5,000" },
+      ],
+      deductions: [
+        { name: "Provident Fund", amount: "₹5,000" },
+        { name: "Income Tax", amount: "₹3,000" },
+        { name: "Professional Tax", amount: "₹200" },
+      ],
+      netPay: "₹0",
+      paymentMethod: "",
+    });
   };
 
   useEffect(() => {
-    setFormData({
-      companyName: companyName,
-      companyLogo: companyLogo,
-      employeeName: employeeName,
-      employeeId: employeeId,
-      designation: designation,
-      department:  department,
-      payPeriodFrom: payPeriodFrom,
-      payPeriodTo: payPeriodTo,
-      workingDaysPaidFor: workingDaysPaidFor,
-      noOfLops: noOfLops,
-      earnings: earnings,
-      deductions: deductions,
-      netPay: calculateNetPay(),
-      paymentMethod: formData.paymentMethod,
-    });
-  }, [
-    companyLogo,
-    companyName,
-    workingDaysPaidFor,
-    noOfLops,
-    earnings,
-    deductions,
-    payPeriodFrom,
-    payPeriodTo,
-    formData.employeeName,
-    formData.employeeId,
-    formData.designation,
-    formData.department,
-  ]);
+    updateFormData("netPay", calculateNetPay());
+  }, [formData.earnings, formData.deductions]);
 
   return (
-    <>
-      <div className="flex justify-between p-4 space-x-4">
-        <div className="w-1/2">
-          <Card className="w-full max-w-2xl">
-            <CardHeader className="flex border-b pb-4">
-              <div className="flex justify-between w-full">
-                <Button onClick={handleSampleData} className="text-sm">
-                  Add Sample Data
-                </Button>
-              </div>
-              <div className="grid gap-6 py-6">
-                <InputWithLabel
-                  label="Company Logo URL"
-                  value={companyLogo}
-                  onChange={(e) => setCompanyLogo(e.target.value)}
-                />
-                <div className="grid gap-1 flex-1">
+    <div className="flex justify-between p-4 space-x-4">
+      <div className="w-1/2">
+        <Card className="w-full max-w-2xl">
+          <CardHeader className="flex border-b pb-4">
+            <div className="flex justify-between w-full">
+              <Button onClick={handleSampleData} className="text-sm">
+                Add Sample Data
+              </Button>
+            </div>
+            <div className="grid gap-6 py-6">
+              <InputWithLabel
+                label="Company Logo URL"
+                value={formData.companyLogo}
+                onChange={(value) => updateFormData("companyLogo", value)}
+              />
+              <InputWithLabel
+                label="Company Name"
+                value={formData.companyName}
+                onChange={(value) => updateFormData("companyName", value)}
+              />
+            </div>
+          </CardHeader>
+          <CardContent className="grid gap-6 py-6">
+            <div className="grid grid-cols-2 gap-4">
+              {["employeeName", "employeeId", "designation", "department"].map(
+                (field) => (
                   <InputWithLabel
-                    label="Company Name"
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
+                    key={field}
+                    label={field.charAt(0).toUpperCase() + field.slice(1)}
+                    value={formData[field as keyof FormData] as string}
+                    onChange={(value) =>
+                      updateFormData(field as keyof FormData, value)
+                    }
                   />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="grid gap-6 py-6">
-              <div className="grid grid-cols-2 gap-4">
-                <InputWithLabel
-                  label="Employee Name"
-                  value={formData.employeeName}
-                  onChange={(e) =>
-                    setEmployeeName(e.target.value)
-                  }
-                />
-                <InputWithLabel
-                  label="Employee ID"
-                  value={formData.employeeId}
-                  onChange={(e) =>
-                    setEmployeeId(e.target.value)
-                  }
-                />
-                <InputWithLabel
-                  label="Designation"
-                  value={formData.designation}
-                  onChange={(e) =>
-                    setDesignation(e.target.value)
-                  }
-
-                />
-                <InputWithLabel
-                  label="Department"
-                  value={formData.department}
-                  onChange={(e) =>
-                    setDepartment(e.target.value)}
-                />
-                <InputWithLabel
-                  label="Pay Period From"
-                  value={payPeriodFrom}
-                  onChange={(e) => 
-                    setPayPeriodFrom(e.target.value)
-
-                  }
-                  type="date"
-                />
-                <InputWithLabel
-                  label="Pay Period To"
-                  value={payPeriodTo}
-                  onChange={(e) => setPayPeriodTo(e.target.value)}
-                  type="date"
-                />
-                <InputWithLabel
-                  label="Working Days Paid For"
-                  value={workingDaysPaidFor}
-                  onChange={(e) => setWorkingDaysPaidFor(e.target.value)}
-                />
-                <InputWithLabel
-                  label="Number of LOPs"
-                  value={noOfLops}
-                  onChange={(e) => setNoOfLops(e.target.value)}
-                />
-              </div>
-              <Separator />
-              <div className="grid gap-4">
-                <div className="grid gap-1">
-                  <div className="text-sm font-medium">Earnings</div>
-                  {earnings.map((field, index) => (
-                    <div key={index} className="flex gap-2">
-                      <InputWithLabel
-                        label="Earnings name"
-                        value={field.name}
-                        onChange={(e) =>
-                          handleFieldChange(
-                            "earnings",
-                            index,
-                            "name",
-                            e.target.value
-                          )
-                        }
-                      />
-                      <InputWithLabel
-                        label="Amount"
-                        value={field.amount}
-                        onChange={(e) =>
-                          handleFieldChange(
-                            "earnings",
-                            index,
-                            "amount",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </div>
-                  ))}
-                  <Button onClick={() => handleAddField("earnings")}>
-                    Add Earnings
-                  </Button>
-                </div>
-                <div className="grid gap-1">
-                  <div className="text-sm font-medium">Deductions</div>
-                  {deductions.map((field, index) => (
-                    <div key={index} className="flex gap-2">
-                      <InputWithLabel
-                        label="Deductions name"
-                        value={field.name}
-                        onChange={(e) =>
-                          handleFieldChange(
-                            "deductions",
-                            index,
-                            "name",
-                            e.target.value
-                          )
-                        }
-                      />
-                      <InputWithLabel
-                        label="Amount"
-                        value={field.amount}
-                        onChange={(e) =>
-                          handleFieldChange(
-                            "deductions",
-                            index,
-                            "amount",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </div>
-                  ))}
-                  <Button onClick={() => handleAddField("deductions")}>
-                    Add Deductions
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="w-1/2">
-          <PayslipSummary formData={formData} />
-        </div>
+                )
+              )}
+              <InputWithLabel
+                label="Pay Period From"
+                value={formData.payPeriodFrom}
+                onChange={(value) => updateFormData("payPeriodFrom", value)}
+                type="date"
+              />
+              <InputWithLabel
+                label="Pay Period To"
+                value={formData.payPeriodTo}
+                onChange={(value) => updateFormData("payPeriodTo", value)}
+                type="date"
+              />
+              <InputWithLabel
+                label="Working Days Paid For"
+                value={formData.workingDaysPaidFor}
+                onChange={(value) =>
+                  updateFormData("workingDaysPaidFor", value)
+                }
+              />
+              <InputWithLabel
+                label="Number of LOPs"
+                value={formData.noOfLops}
+                onChange={(value) => updateFormData("noOfLops", value)}
+              />
+            </div>
+            <Separator />
+            <FinancialEntryInput
+              entries={formData.earnings}
+              onAdd={() => handleAddField("earnings")}
+              onChange={(index, key, value) =>
+                handleFieldChange("earnings", index, key, value)
+              }
+              label="Earnings"
+            />
+            <FinancialEntryInput
+              entries={formData.deductions}
+              onAdd={() => handleAddField("deductions")}
+              onChange={(index, key, value) =>
+                handleFieldChange("deductions", index, key, value)
+              }
+              label="Deductions"
+            />
+          </CardContent>
+        </Card>
       </div>
-    </>
+      <div className="w-1/2">
+        <PayslipSummary formData={formData} />
+      </div>
+    </div>
   );
 };
